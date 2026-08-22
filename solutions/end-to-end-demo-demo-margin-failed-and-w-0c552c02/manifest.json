@@ -1,0 +1,30 @@
+{
+ "schema": "daisy.commons.solution/1",
+ "id": "0c552c0245baf0a0",
+ "title": "end-to-end demo: demo.margin failed and was repaired by algebra",
+ "kind": "software",
+ "produced_by": {
+  "vendor": "labctl",
+  "model": "deterministic"
+ },
+ "verified": {
+  "gate_signature": "demo.margin=pass",
+  "gates": [
+   {
+    "name": "demo.margin",
+    "passed": true,
+    "margin": 1.5
+   }
+  ],
+  "all_passed": true
+ },
+ "recipe": "invert the margin equation for the parameter, round up, re-run the gate",
+ "tokens_cost": 41000,
+ "reuses": 0,
+ "generated": "2026-08-22 11:38:11",
+ "published_by": {
+  "as": "rishith-c",
+  "via": "github"
+ },
+ "published_at": "2026-08-22T18:38:12Z"
+}
