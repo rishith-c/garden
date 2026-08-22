@@ -1,0 +1,33 @@
+{
+ "schema": "daisy.commons.solution/1",
+ "id": "d9ad2681a428c7db",
+ "title": "vendor table restructured overnight: scraper returned 200 OK with fewer keys per row",
+ "kind": "software",
+ "produced_by": {
+  "vendor": "codex",
+  "model": "gpt-5.6-sol"
+ },
+ "verified": {
+  "gate_signature": "scrape.freshness=pass|scrape.schema=pass",
+  "gates": [
+   {
+    "name": "scrape.schema",
+    "passed": true
+   },
+   {
+    "name": "scrape.freshness",
+    "passed": true
+   }
+  ],
+  "all_passed": true
+ },
+ "recipe": "anchor re-derived selectors on the last-good field VALUES rather than on markup, then refuse the repair unless health passes on the new spec",
+ "tokens_cost": 31200,
+ "reuses": 0,
+ "generated": "2026-08-22 11:09:50",
+ "published_by": {
+  "as": "rishith-c",
+  "via": "github"
+ },
+ "published_at": "2026-08-22T18:09:51Z"
+}

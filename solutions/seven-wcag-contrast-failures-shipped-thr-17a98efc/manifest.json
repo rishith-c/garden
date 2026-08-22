@@ -1,0 +1,34 @@
+{
+ "schema": "daisy.commons.solution/1",
+ "id": "17a98efca9f75db9",
+ "title": "seven WCAG contrast failures shipped, three already 'fixed' by eye",
+ "kind": "software",
+ "produced_by": {
+  "vendor": "claude",
+  "model": "claude-opus-5"
+ },
+ "verified": {
+  "gate_signature": "taste.t1=pass|taste.t2=pass",
+  "gates": [
+   {
+    "name": "taste.t2",
+    "passed": true,
+    "margin": 3.11
+   },
+   {
+    "name": "taste.t1",
+    "passed": true
+   }
+  ],
+  "all_passed": true
+ },
+ "recipe": "compute the ratio instead of judging it: parse the tokens, resolve rgba/color-mix over the real surface, check every declared pair in both themes, give each checked surface its own token so CSS and checker cannot drift",
+ "tokens_cost": 33600,
+ "reuses": 0,
+ "generated": "2026-08-22 11:09:48",
+ "published_by": {
+  "as": "rishith-c",
+  "via": "github"
+ },
+ "published_at": "2026-08-22T18:09:50Z"
+}

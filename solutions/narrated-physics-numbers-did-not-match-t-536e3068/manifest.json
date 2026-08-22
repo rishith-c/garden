@@ -1,0 +1,30 @@
+{
+ "schema": "daisy.commons.solution/1",
+ "id": "536e306809bd1302",
+ "title": "narrated physics numbers did not match the load case they claimed",
+ "kind": "software",
+ "produced_by": {
+  "vendor": "claude",
+  "model": "claude-opus-5"
+ },
+ "verified": {
+  "gate_signature": "physics.bend=pass",
+  "gates": [
+   {
+    "name": "physics.bend",
+    "passed": true,
+    "margin": 1.5
+   }
+  ],
+  "all_passed": true
+ },
+ "recipe": "stop hand-writing figures: generate every displayed number from the gate engine via tools/sync_physics.py so the UI cannot drift from the physics",
+ "tokens_cost": 21400,
+ "reuses": 0,
+ "generated": "2026-08-22 11:09:51",
+ "published_by": {
+  "as": "rishith-c",
+  "via": "github"
+ },
+ "published_at": "2026-08-22T18:09:51Z"
+}
