@@ -29,5 +29,97 @@
   "as": "rishith-c",
   "via": "github"
  },
- "published_at": "2026-08-22T18:09:51Z"
+ "published_at": "2026-08-22T18:09:51Z",
+ "detail": {
+  "schema": "garden.solution/2",
+  "problem": {
+   "symptom": "A scraper returns HTTP 200 and the expected number of rows, but fields are silently missing from every row.",
+   "context": "A collector pointed at a vendor page that was restructured overnight.",
+   "detected_by": "scrape.schema \u2014 required-field and type conformance, not HTTP status",
+   "severity": "blocking"
+  },
+  "diagnosis": {
+   "root_cause": "Selectors were anchored to markup. The markup changed; the data did not.",
+   "why_it_happens": "This is the failure mode that matters and the one nobody catches: the request succeeds, so error handling never fires. A missing price is not an exception, it is a None that flows downstream.",
+   "confirm_with": "Compare row count and per-field fill rate against the last good baseline. A 200 with fewer keys per row is the signature."
+  },
+  "fix": {
+   "summary": "Re-derive selectors by anchoring on the last-good field *values* rather than on tags or classes, then refuse the repair unless health passes on the new spec.",
+   "steps": [
+    {
+     "kind": "run",
+     "target": "python3 -m scrape.cli check",
+     "value": "--fixture <page>",
+     "why": "exit 1 means drift, not a network error"
+    },
+    {
+     "kind": "run",
+     "target": "python3 -m scrape.cli repair",
+     "value": "--fixture <page>",
+     "why": "proposes a new spec; writes nothing"
+    },
+    {
+     "kind": "check",
+     "target": "selector diff",
+     "value": "review old -> new",
+     "why": "a human sees the change before it lands"
+    },
+    {
+     "kind": "run",
+     "target": "python3 -m scrape.cli repair",
+     "value": "--fixture <page> --accept",
+     "why": "only after the diff is reviewed"
+    }
+   ],
+   "parameters": {
+    "freshness_ttl_s": {
+     "type": "int",
+     "unit": "s",
+     "value": 900
+    }
+   },
+   "code": "# anchor on data, not markup: find the element whose text equals a\n# known-good value, then derive its selector from that position"
+  },
+  "verification": {
+   "load_case": {},
+   "commands": [
+    "python3 -m scrape.cli check --fixture <page>",
+    "python3 -m scrape.test_scrape"
+   ],
+   "expected": "check exits 0 with the original row count restored and every required field present."
+  },
+  "applicability": {
+   "applies_when": [
+    "a scraper's output shape changed without an error",
+    "a last-good extraction exists to anchor on"
+   ],
+   "does_not_apply_when": [
+    "there is no last-good baseline \u2014 there is nothing to anchor to and the repair has no ground truth",
+    "the site genuinely stopped publishing the field; re-deriving a selector for data that no longer exists will produce a confident empty column",
+    "the page is behind a login or renders client-side only"
+   ],
+   "preconditions": [
+    "a baseline with per-field fill rates",
+    "rules are version-controlled"
+   ]
+  },
+  "related": {
+   "gates": [
+    "scrape.freshness",
+    "physics.fastener"
+   ],
+   "tags": [
+    "data",
+    "self-healing",
+    "value-anchored",
+    "bright-data"
+   ]
+  }
+ },
+ "completeness": {
+  "score": 1.0,
+  "have": 10,
+  "of": 10,
+  "missing": []
+ }
 }

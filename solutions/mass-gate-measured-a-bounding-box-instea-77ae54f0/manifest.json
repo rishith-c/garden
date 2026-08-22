@@ -43,5 +43,83 @@
   "as": "rishith-c",
   "via": "github"
  },
- "published_at": "2026-08-22T18:09:52Z"
+ "published_at": "2026-08-22T18:09:52Z",
+ "detail": {
+  "schema": "garden.solution/2",
+  "problem": {
+   "symptom": "Reported part mass is materially lower than the part actually weighs.",
+   "context": "Mass computed from geometry during a design gate.",
+   "detected_by": "physics.mass, cross-checked against the mesh",
+   "severity": "degraded"
+  },
+  "diagnosis": {
+   "root_cause": "Mass was computed from the bounding box rather than the solid.",
+   "why_it_happens": "A bounding box is the easiest volume to reach and is right only for a rectangular prism. Any L-shape, cut-out or hole makes it wrong, and wrong in the flattering direction.",
+   "confirm_with": "Compute the volume twice \u2014 analytically from the solid, and from the mesh by the divergence theorem. If they disagree, one of them is lying."
+  },
+  "fix": {
+   "summary": "Take volume from the analytic solid minus the holes, and cross-check it against the mesh. Two independent derivations that agree is the test.",
+   "steps": [
+    {
+     "kind": "edit",
+     "target": "hardware/bracket.py",
+     "value": "volume = web + foot - holes",
+     "why": "count the corner overlap once, subtract hole volume"
+    },
+    {
+     "kind": "check",
+     "target": "geometry.closed",
+     "value": "mesh_volume - solid_volume == hole_volume",
+     "why": "the difference must be exactly the holes, not approximately"
+    }
+   ],
+   "parameters": {
+    "reported_mass_g": {
+     "type": "float",
+     "unit": "g",
+     "from": 6.6,
+     "to": 8.3
+    }
+   },
+   "code": "def volume_mm3(self):\n    web  = self.width * self.thickness * self.arm\n    foot = self.width * self.thickness * (self.foot - self.thickness)\n    holes = self.hole_count * math.pi * (self.hole_dia/2)**2 * self.thickness\n    return web + foot - holes"
+  },
+  "verification": {
+   "load_case": {},
+   "commands": [
+    "python3 -m hardware.test_margins"
+   ],
+   "expected": "mesh volume exceeds the solid by exactly the hole volume, to 0.01 mm^3."
+  },
+  "applicability": {
+   "applies_when": [
+    "mass or volume is derived from geometry",
+    "the part is not a simple prism"
+   ],
+   "does_not_apply_when": [
+    "the mesh has fillets, lofts or booleans \u2014 hand-built geometry is honest only for convex slabs; use a kernel and say so",
+    "density is uncertain, in which case the volume is not the error source"
+   ],
+   "preconditions": [
+    "the mesh is closed",
+    "density is known for the material"
+   ]
+  },
+  "related": {
+   "gates": [
+    "physics.bend",
+    "geometry.closed"
+   ],
+   "tags": [
+    "hardware",
+    "geometry",
+    "cross-validation"
+   ]
+  }
+ },
+ "completeness": {
+  "score": 1.0,
+  "have": 10,
+  "of": 10,
+  "missing": []
+ }
 }

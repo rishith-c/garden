@@ -30,5 +30,84 @@
   "as": "rishith-c",
   "via": "github"
  },
- "published_at": "2026-08-22T18:09:50Z"
+ "published_at": "2026-08-22T18:09:50Z",
+ "detail": {
+  "schema": "garden.solution/2",
+  "problem": {
+   "symptom": "Generated UI carries the tells of a template: colours declared outside the token system, one radius everywhere, emoji standing in for icons.",
+   "context": "An agent asked to produce a frontend without a design system in front of it.",
+   "detected_by": "taste.t1 \u2014 20 named design tells",
+   "severity": "degraded"
+  },
+  "diagnosis": {
+   "root_cause": "Nothing named the standard, so the model reached for its priors.",
+   "why_it_happens": "'Make it look good' is not a specification. A model given no constraints produces the median of its training data, which is exactly the look people recognise as generated.",
+   "confirm_with": "Run the linter. Each finding names the tell and the line, so it is checkable rather than arguable."
+  },
+  "fix": {
+   "summary": "Feed the named findings back into the retry verbatim. 'Make it better' is not a repair instruction; a named tell with a line number is.",
+   "steps": [
+    {
+     "kind": "run",
+     "target": "python3 -m taste.lint <file>",
+     "value": "",
+     "why": "exit code is the finding count"
+    },
+    {
+     "kind": "note",
+     "target": "retry prompt",
+     "value": "include each finding's name, line and excerpt",
+     "why": "the specificity is the whole mechanism"
+    },
+    {
+     "kind": "check",
+     "target": "taste.t1",
+     "value": "0 findings",
+     "why": ""
+    }
+   ],
+   "parameters": {
+    "max_findings": {
+     "type": "int",
+     "value": 0
+    }
+   },
+   "code": ""
+  },
+  "verification": {
+   "load_case": {},
+   "commands": [
+    "python3 -m taste.lint index.html"
+   ],
+   "expected": "0 findings across 20 tells."
+  },
+  "applicability": {
+   "applies_when": [
+    "an agent generated UI and it must match an existing design language"
+   ],
+   "does_not_apply_when": [
+    "the project has no design system to conform to \u2014 the tells encode one house style and imposing it elsewhere is just a different arbitrary taste",
+    "the file is a fixture or a test that quotes a tell on purpose"
+   ],
+   "preconditions": [
+    "a token system exists to conform to"
+   ]
+  },
+  "related": {
+   "gates": [
+    "taste.t2"
+   ],
+   "tags": [
+    "frontend",
+    "design",
+    "retry-with-findings"
+   ]
+  }
+ },
+ "completeness": {
+  "score": 1.0,
+  "have": 10,
+  "of": 10,
+  "missing": []
+ }
 }

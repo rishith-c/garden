@@ -49,5 +49,113 @@
   "as": "rishith-c",
   "via": "github"
  },
- "published_at": "2026-08-22T18:09:48Z"
+ "published_at": "2026-08-22T18:09:48Z",
+ "detail": {
+  "schema": "garden.solution/2",
+  "problem": {
+   "symptom": "A cantilever part fails its bending gate: computed stress exceeds the material allowable, and the reported factor of safety is below the target.",
+   "context": "A bracket or arm carrying a tip load, sized by eye or copied from a part with a different load case.",
+   "detected_by": "physics.bend \u2014 closed-form bending margin in hardware/margins.py",
+   "severity": "blocking"
+  },
+  "diagnosis": {
+   "root_cause": "The web is too thin for the moment it carries. Bending stress goes as 1/t^2, so a section that looks 'about right' is often out by a factor of two in margin.",
+   "why_it_happens": "Thickness is usually chosen for printability or for how it looks in CAD, not derived from the load. Nothing catches it until something computes the moment.",
+   "confirm_with": "Recompute sigma = 6M/(b*t^2) by hand for the stated load case. If it matches the gate's value, the geometry is the problem and not the gate."
+  },
+  "fix": {
+   "summary": "Do not guess a thicker web \u2014 invert the bending equation for t at the target factor of safety, patch that single parameter, regenerate the geometry, and re-run the gate.",
+   "steps": [
+    {
+     "kind": "run",
+     "target": "python3 -m hardware.margins",
+     "value": "--load 2.4 --arm 90 --width 18 --fos 1.5",
+     "why": "get the solved thickness rather than picking one"
+    },
+    {
+     "kind": "edit",
+     "target": "hardware/bracket.py",
+     "value": "web_thickness = <solved value>",
+     "why": "one parameter; everything downstream is derived from it"
+    },
+    {
+     "kind": "run",
+     "target": "python3 -m hardware.bracket",
+     "value": "--thickness <solved> --out bracket.stl",
+     "why": "regenerate geometry from the patched parameter"
+    },
+    {
+     "kind": "check",
+     "target": "physics.bend",
+     "value": "margin >= target FoS",
+     "why": "the repair must clear the gate that asked for it"
+    }
+   ],
+   "parameters": {
+    "web_thickness": {
+     "type": "float",
+     "unit": "mm",
+     "from": 3.2,
+     "to": 4.61
+    },
+    "target_fos": {
+     "type": "float",
+     "unit": "-",
+     "value": 1.5
+    }
+   },
+   "code": "import math\ndef solve_thickness(load_kg, arm_mm, width_mm, fos, allow_pa):\n    moment = load_kg * 9.80665 * (arm_mm / 1000.0)\n    t = math.sqrt(6.0 * moment / ((width_mm/1000.0) * allow_pa / fos))\n    # round UP: rounding to nearest can land the repaired part\n    # fractionally under target and fail the gate that asked for it\n    return math.ceil(t * 1000.0 * 100.0) / 100.0"
+  },
+  "verification": {
+   "load_case": {
+    "tip_load_kg": 2.4,
+    "arm_mm": 90.0,
+    "width_mm": 18.0,
+    "material": "PETG",
+    "yield_mpa": 50.0,
+    "target_fos": 1.5
+   },
+   "commands": [
+    "python3 -m hardware.test_margins",
+    "python3 labctl.py run --brief '...' --lane hardware"
+   ],
+   "expected": "physics.bend margin >= 1.5 after the repair; the run reports 'repair: web_thickness 3.2 -> 4.61 mm (solved, not guessed)'."
+  },
+  "applicability": {
+   "applies_when": [
+    "a cantilever section fails a bending margin",
+    "the load case is static and known",
+    "thickness is a free parameter you are allowed to change"
+   ],
+   "does_not_apply_when": [
+    "the load is cyclic \u2014 this is a static yield check and says nothing about fatigue",
+    "the section buckles rather than yields; slender webs fail by buckling first and this equation will report a comfortable margin on a part that folds",
+    "the load is an impact \u2014 dynamic amplification is not in the closed form",
+    "thickness is fixed by fit or by stock and cannot be changed; widen b or shorten the arm instead"
+   ],
+   "preconditions": [
+    "the material yield strength is known",
+    "the moment arm and load are stated, not assumed"
+   ]
+  },
+  "related": {
+   "gates": [
+    "physics.mass",
+    "physics.thermal",
+    "geometry.closed"
+   ],
+   "tags": [
+    "hardware",
+    "structures",
+    "closed-form",
+    "repair-by-algebra"
+   ]
+  }
+ },
+ "completeness": {
+  "score": 1.0,
+  "have": 10,
+  "of": 10,
+  "missing": []
+ }
 }
